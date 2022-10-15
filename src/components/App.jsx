@@ -25,7 +25,7 @@ export class App extends Component {
   onSubmit = e => {
     e.preventDefault();
     const query = e.target.elements.query.value.toLowerCase();
-    this.setState({ query, page: 1, images: [] });
+    this.setState({ query, page: 1, images: [], error: null });
   };
 
   onImageClick = (url, alt) => {
