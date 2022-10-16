@@ -8,45 +8,48 @@ import { Loader } from './Loader/Loader';
 import { Notification } from './Notification/Notification';
 
 const errorMessage = `Nothing found for your request. Change query and try again`;
-const perPage = 12;
 export class App extends Component {
   state = {
     images: [],
     query: '',
     page: 1,
+    perPage: 12,
     isLoading: false,
     error: null,
     totalHits: null,
   };
 
-  onSubmit = e => {
-    e.preventDefault();
-    const query = e.target.elements.query.value.toLowerCase();
-    this.setState({ query, page: 1, images: [], error: null });
-  };
-
   componentDidUpdate(_, prevState) {
-    const { page, query, images } = this.state;
+    const { page, query, perPage, images } = this.state;
 
     if (query !== prevState.query || page !== prevState.page) {
-      this.fetchImages(query, page, images);
+      this.fetchImages(query, page, perPage, images);
     }
   }
+
+  onSubmit = e => {
+    e.preventDefault();
+    const query = e.target.elements.query.value.toLowerCase().trim();
+    this.setState({ query, page: 1, images: [], totalHits: null, error: null });
+  };
 
   loadMore = () => {
     this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
-  fetchImages = async (query, page, prevImages) => {
+  fetchImages = async (query, page, perPage, prevImages) => {
     try {
       this.setState({ isLoading: true });
-      const response = await fetchApi(query, page).then(resp => resp.data);
-      if (!response.hits.length) {
+      const resp = await fetchApi(query, page, perPage);
+
+      if (!resp.data.hits.length) {
         throw new Error(errorMessage);
       }
+
+      const { hits, totalHits } = resp.data;
       this.setState({
-        images: [...prevImages, ...mapper(response.hits)],
-        totalHits: response.totalHits,
+        images: [...prevImages, ...mapper(hits)],
+        totalHits,
       });
     } catch {
       this.setState({ error: errorMessage });
@@ -55,20 +58,23 @@ export class App extends Component {
     }
   };
 
+  countTotalPages = () => {
+    const { totalHits, perPage } = this.state;
+    return Math.round(totalHits / perPage);
+  };
+
   render() {
-    const { onSubmit, loadMore } = this;
-    const { images, isLoading, error, totalHits, page } = this.state;
-    const totalPages = Math.round(totalHits / perPage);
+    const { onSubmit, loadMore, countTotalPages } = this;
+    const { images, isLoading, error, totalHits, page, perPage } = this.state;
     return (
       <>
         <SearchBar onSubmit={onSubmit} />
         <ImageGallery images={images} />
         {error && <Notification message={error} />}
         {isLoading && <Loader />}
-        {images.length > 0 &&
-          !isLoading &&
-          totalHits > perPage &&
-          page < totalPages && <Button loadMore={loadMore} />}
+        {!isLoading && totalHits > perPage && page < countTotalPages() && (
+          <Button loadMore={loadMore} />
+        )}
       </>
     );
   }
