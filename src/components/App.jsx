@@ -20,10 +20,10 @@ export class App extends Component {
   };
 
   componentDidUpdate(_, prevState) {
-    const { page, query, perPage, images } = this.state;
+    const { page, query, perPage } = this.state;
 
     if (query !== prevState.query || page !== prevState.page) {
-      this.fetchImages(query, page, perPage, images);
+      this.fetchImages(query, page, perPage);
     }
   }
 
@@ -37,7 +37,7 @@ export class App extends Component {
     this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
-  fetchImages = async (query, page, perPage, prevImages) => {
+  fetchImages = async (query, page, perPage) => {
     try {
       this.setState({ isLoading: true });
       const resp = await fetchApi(query, page, perPage);
@@ -47,10 +47,10 @@ export class App extends Component {
       }
 
       const { hits, totalHits } = resp.data;
-      this.setState({
-        images: [...prevImages, ...mapper(hits)],
+      this.setState(prevState => ({
+        images: [...prevState.images, ...mapper(hits)],
         totalHits,
-      });
+      }));
     } catch {
       this.setState({ error: errorMessage });
     } finally {
