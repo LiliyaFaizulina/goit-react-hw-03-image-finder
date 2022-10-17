@@ -14,21 +14,28 @@ export class ImageGalleryItem extends Component {
     largeImg: PropTypes.string.isRequired,
   };
 
-  toggleModal = () => {
-    this.setState(prevState => ({ isModalOpen: !prevState.isModalOpen }));
+  openModal = () => {
+    this.setState({ isModalOpen: true });
+  };
+
+  closeModal = e => {
+    if (e.code === 'Escape' || e.target === e.currentTarget) {
+      this.setState({ isModalOpen: false });
+    }
   };
 
   render() {
     const { img, alt, largeImg } = this.props;
     const {
       state: { isModalOpen },
-      toggleModal,
+      openModal,
+      closeModal,
     } = this;
     return (
       <GalleryItem>
-        <Image src={img} alt={alt} onClick={toggleModal} />
+        <Image src={img} alt={alt} onClick={openModal} />
         {isModalOpen && (
-          <Modal url={largeImg} alt={alt} closeModal={toggleModal} />
+          <Modal url={largeImg} alt={alt} closeModal={closeModal} />
         )}
       </GalleryItem>
     );
