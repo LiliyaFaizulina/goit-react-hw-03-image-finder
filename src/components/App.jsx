@@ -25,6 +25,10 @@ export class App extends Component {
     if (query !== prevState.query || page !== prevState.page) {
       this.fetchImages(query, page, perPage);
     }
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
   }
 
   onSubmit = e => {
